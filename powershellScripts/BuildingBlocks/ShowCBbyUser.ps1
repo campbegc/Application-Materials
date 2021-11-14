@@ -1,0 +1,2 @@
+﻿$User = Read-Host "Show chromebooks for which user?" 
+gam print cros query "user:$User" | gam csv - gam info cros ~deviceId fields annotateduser, orgUnitPath, annotatedassetid, annotatedlocation, lastsync, serialnumber, status, model, osversion, lastenrollmenttime, autoupdateexpiration

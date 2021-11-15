@@ -21,21 +21,22 @@ function Show-Menu {
     Write-Host "5: Set Ext10 value"
     Write-Host "6: Disable Account"
     Write-Host "7: Rename Computer"
+    Write-Host "8: Add User to Adobe users group"
     Write-Host ""
     Write-Host "===$ChromeTitle==="
     Write-Host ""
-    Write-Host "8: General Search (Asset# or Serial#)"
-    Write-Host "9: Search devices by annotated username"
-    Write-Host "10: Move annotated user's chromebooks to /LostChromebooks"
-    Write-Host "11: Move to /LostChromebooks by 5-digit asset or serial"
-    Write-Host "12: Update Annotated User for device"
-    Write-Host "13: Move multiple to specific OU by User Group"
+    Write-Host "9: General Search (Asset# or Serial#)"
+    Write-Host "10: Search devices by annotated username"
+    Write-Host "11: Move annotated user's chromebooks to /LostChromebooks"
+    Write-Host "12: Move to /LostChromebooks by 5-digit asset or serial"
+    Write-Host "13: Update Annotated User for device"
+    Write-Host "14: Move multiple to specific OU by User Group"
     Write-Host ""
     Write-Host "===$GuardianTitle==="
     Write-Host ""
-    Write-Host "14: Show Student's Invited Guardians"
-    Write-Host "15: Delete Student Guardians"
-    Write-Host "16: Invite New Guardians"
+    Write-Host "15: Show Student's Invited Guardians"
+    Write-Host "16: Delete Student Guardians"
+    Write-Host "17: Invite New Guardians"
     Write-Host ""
     Write-Host "Q: press 'Q' to quit."
     Write-Host ""
@@ -50,7 +51,7 @@ do {
     switch ($selection) {
         #USER LOOKUP
         1 { $User = Read-Host 'Which user?'
-            get-aduser $User -properties * | Select-Object DisplayName, Name, Office, title, ExtensionAttribute10, employeeid, employeetype, PasswordNeverExpires, distinguishedname  }
+            get-aduser $User -properties * | Select-Object DisplayName, Name, Office, title, ExtensionAttribute10, employeeid, employeetype, PasswordNeverExpires, distinguishedname, memberof }
         #SEARCH LOGON LOGS OF COMPUTERS. LOGS ARE PRODUCED ONLY WHEN CONNECTED TO OUR PHYSICAL NETWORK.
         2 { $Query = Read-Host 'Please supply the username, asset number, or serial'
             Get-Childitem -Path \\bhsfs\SharedData\Technology\LoginLogs -Filter *$Query* -File -Recurse -ErrorAction SilentlyContinue | Get-Content}
@@ -102,24 +103,29 @@ gam update user $name suspended on
         7 {$computer = read-host "What is the old computer name?"
             $name = Read-Host "What is the new computer name?"
             rename-computer -computername "$computer" -NewName "$name" -DomainCredential branford.k12.ct.us\gcampbell -force -Restart}
+
+        #ADD USER TO ADOBEUSERS GROUP SO THEY CAN USE CREATIVE CLOUD.
+        8 {$User = read-host "Who is the user?"
+            Add-ADGroupMember -Identity AdobeUsers -Members $User}
+
         #GENERAL CHROMEBOOK SEARCH (FOR NUMBERS. USERNAMES WILL RETURN ALL CHROMEBOOKS A USER HAS SIGNED INTO)
-        8 { $asset = Read-Host "What info on the chromebook do you have?"
+        9 { $asset = Read-Host "What info on the chromebook do you have?"
             gam print cros query $asset | gam csv - gam info cros ~deviceId fields annotateduser, orgUnitPath, annotatedassetid, annotatedlocation, lastsync, serialnumber, status, model, osversion}
         #SEARCH CHROMEBOOKS BY ANNOTATED USER NAME
-        9 { $User = Read-Host "Show chromebooks for which user?"
+        10 { $User = Read-Host "Show chromebooks for which user?"
             gam print cros query "user:$User" | gam csv - gam info cros ~deviceId fields annotateduser, orgUnitPath, annotatedassetid, annotatedlocation, lastsync, serialnumber, status, model, osversion}
         #MOVE TO /LOSTCHROMEBOOKS BY USER
-        10 { $user = read-host "Which user's chromebook are we moving?"
+        11 { $user = read-host "Which user's chromebook are we moving?"
             gam print cros query "user:$user" | gam csv - gam update cros ~deviceId ou /LostChromebooks }
         #MOVE CHROMEBOOKS TO /LOSTCHROMEBOOKS BY DEVICE ID OR SERIAL
-        11 { $asset = Read-Host "Enter the Serial Number or DeviceId. Asset numbers can move multiple devices"
+        12 { $asset = Read-Host "Enter the Serial Number or DeviceId. Asset numbers can move multiple devices"
             gam print cros query $asset | gam csv - gam update cros ~deviceId ou /LostChromebooks }
         #UPDATE ANNOTATED USER FOR CHROMEBOOK
-        12 { $asset = read-host "Which Chromebook? 5-digit asset number or serial for precision"
+        13 { $asset = read-host "Which Chromebook? 5-digit asset number or serial for precision"
              $User = read-host "Which user? Full email address please"
              gam print cros query $asset | gam csv - gam update cros ~deviceId user $User  }
         #MOVE MULTIPLE CHROMEBOOKS TO SPECIFIC OU BY USERGROUP
-        13 { #Allows user to specify which distro group to pull users from, and which OU to place their chromebooks.
+        14 { #Allows user to specify which distro group to pull users from, and which OU to place their chromebooks.
             $group = read-host "Which distrobution group are we shutting down? (spaces matter; exactly as in AD)"
             $location = read-host "what is path of the OU you want to sent the chromebooks to? /LostChromebooks?"
             
@@ -129,14 +135,14 @@ gam update user $name suspended on
             #Reads csv for users, grabs chromebooks based on username, moves them to desired OU.
             gam csv temp.csv gam print cros query "user:~SAMAccountName" | gam csv - gam update cros ~deviceId ou $location }
         #SHOW STUDENT'S INVITED GUARDIANS
-        14 { $student = Read-Host "What is the student email address?"
+        15 { $student = Read-Host "What is the student email address?"
             gam print guardians student $student todrive }
         #DELETE STUDENT GUARDIANS
-        15 { $parent = Read-Host "What is the guardian email address that needs to be removed?"
+        16 { $parent = Read-Host "What is the guardian email address that needs to be removed?"
             $student = Read-Host "What is the student email address?"
             gam delete guardian $parent $student }
         #INVITE NEW GUARDIANS FOR STUDENT
-        16 { $parent = Read-Host "What is the guardian email address?"
+        17 { $parent = Read-Host "What is the guardian email address?"
             $student = Read-Host "What is the student email address?"
             gam create guardianinvite $parent $student }
 

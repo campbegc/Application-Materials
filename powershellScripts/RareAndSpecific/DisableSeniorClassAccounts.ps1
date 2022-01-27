@@ -1,5 +1,5 @@
 ﻿# CAUTION: This script creates a list of users to disable based on a distrobution
-# group name. REMOVE ADMINISTRATORS AND OTHERS FROM THE LIST BEFORE USE!!!!!!
+# group name. REMOVE ADMINISTRATORS AND OTHER VIPS FROM THE LIST BEFORE USE!!!!!!
 
 
 #This line allows you to put in the name of the distrobution list.
@@ -26,7 +26,7 @@ Import-Csv ".\emailGroupExports.csv" | ForEach-Object {
             #Removes all user groups from the user's account with a loop that removes the user from each group they belong to (However, it leaves DomainUsers)
             Get-ADUser -Identity $samAccountName -Properties MemberOf | ForEach-Object {
             $_.MemberOf | Remove-ADGroupMember -Members $_.DistinguishedName -Confirm:$false
-            }
+            }GoodMorningDave.ps1 
 
         
             #Set "office" field to Disabled in profile

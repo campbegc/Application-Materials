@@ -7,12 +7,12 @@ gam="/home/gareth/bin/gam/gam"
 $gam print cros orderby lastsync full listlimit 1 >cros.csv
 
 ## sort columns of data into other file
-
+## 2/14/2022 Double check that the order of CSV columns, As GAM updates, it has been shown to change with time. 
 awk -F , '{if ($6 == "bpsdeprovisioned@branfordschools.org"); 
     else if ($6 == "holding@branfordschools.org"); 
     else if ($6 == "shorelineadulted@branfordschools.org");
-    else if ($27 == "/LostChromebooks");
-    else if ($6 != $30) print $6","$30","$4","$32","$27}' cros.csv > temp.csv
+    else if ($26 == "/LostChromebooks");
+    else if ($6 != $29) print $6","$29","$4","$31","$26}' cros.csv > temp.csv
 
 
 
